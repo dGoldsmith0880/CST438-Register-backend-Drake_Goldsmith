@@ -111,8 +111,6 @@ public class JunitTestStudent {
         assertEquals(3, studentList.length);
     }
 
-    // Add more test methods to cover other CRUD operations (e.g., Read, Update, Delete) on StudentController.
-
     private static String asJsonString(final Object obj) {
         try {
             return new ObjectMapper().writeValueAsString(obj);
