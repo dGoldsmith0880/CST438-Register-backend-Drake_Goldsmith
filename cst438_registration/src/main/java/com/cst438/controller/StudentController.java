@@ -3,9 +3,6 @@ package com.cst438.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,10 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.cst438.domain.Student;
 import com.cst438.domain.StudentRepository;
 
@@ -40,29 +34,28 @@ public class StudentController {
     }
 
     // Read a student by ID
-    @GetMapping("/{studentId}")
-    public Student getStudentById(@PathVariable int studentId) {
-        return studentRepository.findById(studentId)
+    @GetMapping("/{student_id}")
+    public Student getStudentById(@PathVariable int student_id) {
+        return studentRepository.findById(student_id)
                 .orElse(null);
     }
 
-    // Update a student by ID
-    @PutMapping("/{studentId}")
-    public Student updateStudent(@PathVariable int studentId, @RequestBody Student updatedStudent) {
-        return studentRepository.findById(studentId)
+    // Update a student's status and statusCode by ID
+    @PutMapping("/{student_id}")
+    public Student updateStudentStatusAndStatusCode(@PathVariable int student_id, @RequestBody Student updatedStudent) {
+        return studentRepository.findById(student_id)
                 .map(student -> {
-                    student.setName(updatedStudent.getName());
-                    student.setEmail(updatedStudent.getEmail());
-                    student.setStatusCode(updatedStudent.getStatusCode());
                     student.setStatus(updatedStudent.getStatus());
+                    student.setStatusCode(updatedStudent.getStatusCode());
                     return studentRepository.save(student);
                 })
                 .orElse(null);
     }
 
+
     // Delete a student by ID
-    @DeleteMapping("/{studentId}")
-    public void deleteStudent(@PathVariable int studentId) {
-        studentRepository.deleteById(studentId);
+    @DeleteMapping("/{student_id}")
+    public void deleteStudent(@PathVariable int student_id) {
+        studentRepository.deleteById(student_id);
     }
 }

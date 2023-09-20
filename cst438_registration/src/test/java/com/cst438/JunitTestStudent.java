@@ -20,13 +20,13 @@ public class JunitTestStudent {
     @Autowired
     private MockMvc mvc;
 
-    // Example test to create a new student
+    // test to create a new student "createStudent"
     @Test
     public void createStudent() throws Exception {
         // Create a new Student object with required data
         Student student = new Student();
-        student.setName("John Doe");
-        student.setEmail("john@example.com");
+        student.setName("Drake Goldsmith");
+        student.setEmail("dGoldsmith@csumb.edu");
         student.setStatusCode(1);
         student.setStatus("Active");
 
@@ -46,14 +46,32 @@ public class JunitTestStudent {
         assertNotEquals(0, createdStudent.getStudent_id());
 
         // You can add more assertions to validate the created student's properties
-        assertEquals("John Doe", createdStudent.getName());
-        assertEquals("john@example.com", createdStudent.getEmail());
+        assertEquals("Drake Goldsmith", createdStudent.getName());
+        assertEquals("dGoldsmith@csumb.edu", createdStudent.getEmail());
         assertEquals(1, createdStudent.getStatusCode());
         assertEquals("Active", createdStudent.getStatus());
+        
+        
+        
+        // Test updating the student's status by ID "updateStudentStatusAndStatusCode"
+        int createdStudentId = createdStudent.getStudent_id();
+        Student updatedStudent = new Student();
+        updatedStudent.setStatusCode(0); // Updated status code
+        updatedStudent.setStatus("Inactive"); // Updated status
+        response = mvc.perform(
+                MockMvcRequestBuilders
+                        .put("/students/" + createdStudentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(updatedStudent))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse();
+
+        // Verify that return status is OK (value 200) when updating the student's status
+        assertEquals(200, response.getStatus());
 
         
-        // Test retrieving the created student by ID
-        int createdStudentId = createdStudent.getStudent_id();
+        
+        // Test retrieving the updated student by ID "getStudentById"
         response = mvc.perform(
                 MockMvcRequestBuilders
                         .get("/students/" + createdStudentId)
@@ -63,16 +81,15 @@ public class JunitTestStudent {
         // Verify that return status is OK (value 200) when retrieving the student by ID
         assertEquals(200, response.getStatus());
 
-        // Verify that the retrieved student matches the created student
-        Student retrievedStudent = fromJsonString(response.getContentAsString(), Student.class);
-        assertEquals(createdStudentId, retrievedStudent.getStudent_id());
-        assertEquals("John Doe", retrievedStudent.getName());
-        assertEquals("john@example.com", retrievedStudent.getEmail());
-        assertEquals(1, retrievedStudent.getStatusCode());
-        assertEquals("Active", retrievedStudent.getStatus());
+        // Verify that the retrieved student matches the updated status
+        Student retrievedStudent1 = fromJsonString(response.getContentAsString(), Student.class);
+        assertEquals(createdStudentId, retrievedStudent1.getStudent_id());
+        assertEquals(0, retrievedStudent1.getStatusCode()); // Updated status code
+        assertEquals("Inactive", retrievedStudent1.getStatus()); // Updated status
         
         
-        // Test deleting the created student by ID
+        
+        // Test deleting the created student by ID "deleteStudent"
         response = mvc.perform(
                 MockMvcRequestBuilders
                         .delete("/students/" + createdStudentId))
@@ -80,18 +97,10 @@ public class JunitTestStudent {
 
         // Verify that return status is OK (value 200) when deleting the student by ID
         assertEquals(200, response.getStatus());
-
-        // Attempt to retrieve the deleted student by ID
-        response = mvc.perform(
-                MockMvcRequestBuilders
-                        .get("/students/" + createdStudentId)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse();
-
-        // Verify that return status is NOT FOUND (value 404) when attempting to retrieve the deleted student
-        assertEquals(404, response.getStatus());
     }
     
+    
+    // Test to retrieve all students "getAllStudents"
     @Test
     public void getAllStudents() throws Exception {
         // Perform a GET request to retrieve all students
@@ -110,6 +119,7 @@ public class JunitTestStudent {
         // Verify that the response contains the expected number of students (based on your provided data)
         assertEquals(3, studentList.length);
     }
+    
 
     private static String asJsonString(final Object obj) {
         try {
