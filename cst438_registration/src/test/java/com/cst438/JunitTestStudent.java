@@ -9,8 +9,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
@@ -29,17 +27,12 @@ public class JunitTestStudent {
                         .get("/students/")
                         .accept(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse();
-
+        
         // Verify that return status is OK (value 200)
         assertEquals(200, response.getStatus());
-
-        // Parse the response into an array of Student objects
         Student[] studentList = fromJsonString(response.getContentAsString(), Student[].class);
-
-        // Verify that the response contains the expected number of students (based on your provided data)
         assertEquals(4, studentList.length);
         
-        // Print the list of students for observation
         for (Student student : studentList) {
             System.out.println(student.toString());
         }
@@ -47,14 +40,13 @@ public class JunitTestStudent {
     
     @Test
     public void updateStudentStatus() throws Exception {
-        // Create a new Student object with required data
         Student student = new Student();
         student.setName("Drake Goldsmith");
         student.setEmail("dGoldsmith@csumb.edu");
         student.setStatusCode(1);
         student.setStatus("Active");
 
-        // Create the student
+        // Perform a POST request to create a student
         MockHttpServletResponse response = mvc.perform(
                 MockMvcRequestBuilders
                         .post("/students/")
@@ -66,11 +58,10 @@ public class JunitTestStudent {
         // Verify that return status is OK (value 200)
         assertEquals(200, response.getStatus());
 
-        // Retrieve the created student
         Student createdStudent = fromJsonString(response.getContentAsString(), Student.class);
         int createdStudentId = createdStudent.getStudent_id();
 
-        // Update the student's status
+        // Perform a PUT request to update the student's status
         Student updatedStudent = new Student();
         updatedStudent.setStatusCode(0); // Updated status code
         updatedStudent.setStatus("Inactive"); // Updated status
@@ -85,7 +76,7 @@ public class JunitTestStudent {
         // Verify that return status is OK (value 200) when updating the student's status
         assertEquals(200, response.getStatus());
         
-        // Test retrieving the updated student by ID
+        // Perform a GET request to retrieve student data based off of ID
         response = mvc.perform(
                 MockMvcRequestBuilders
                         .get("/students/" + createdStudentId)
@@ -95,7 +86,6 @@ public class JunitTestStudent {
         // Verify that return status is OK (value 200) when retrieving the student by ID
         assertEquals(200, response.getStatus());
 
-        // Verify that the retrieved student matches the updated status
         Student retrievedStudent = fromJsonString(response.getContentAsString(), Student.class);
         assertEquals(createdStudentId, retrievedStudent.getStudent_id());
         assertEquals(0, retrievedStudent.getStatusCode()); // Updated status code
@@ -104,14 +94,13 @@ public class JunitTestStudent {
 
     @Test
     public void deleteStudent() throws Exception {
-        // Create a new Student object with required data
         Student student = new Student();
         student.setName("Drake Goldsmith");
         student.setEmail("dGoldsmith@csumb.edu");
         student.setStatusCode(1);
         student.setStatus("Active");
 
-        // Create the student
+        // Perform a POST request to create a student
         MockHttpServletResponse response = mvc.perform(
                 MockMvcRequestBuilders
                         .post("/students/")
@@ -127,7 +116,7 @@ public class JunitTestStudent {
         Student createdStudent = fromJsonString(response.getContentAsString(), Student.class);
         int createdStudentId = createdStudent.getStudent_id();
 
-        // Test deleting the created student by ID
+        // Perform a DELETE request to delete the student by ID
         response = mvc.perform(
                 MockMvcRequestBuilders
                         .delete("/students/" + createdStudentId))
