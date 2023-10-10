@@ -24,12 +24,11 @@ public class GradebookServiceREST implements GradebookService {
 	private RestTemplate restTemplate = new RestTemplate();
 
 	@Value("${gradebook.url}")
-	private static String gradebook_url;
+	String gradebook_url;
 
 	@Override
 	public void enrollStudent(String student_email, String student_name, int course_id) {
 		System.out.println("Start Message "+ student_email +" " + course_id); 
-		// TODO use RestTemplate to send message to gradebook service
 		// Create an EnrollmentDTO to send to the Gradebook service
 		EnrollmentDTO enrollmentDTO = new EnrollmentDTO(course_id, student_email, student_name, course_id);
 		
