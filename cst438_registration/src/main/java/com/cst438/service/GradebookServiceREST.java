@@ -45,7 +45,6 @@ public class GradebookServiceREST implements GradebookService {
 	@Transactional
 	public void updateCourseGrades( @RequestBody FinalGradeDTO[] grades, @PathVariable("course_id") int course_id) {
 		System.out.println("Grades received "+grades.length);
-		//TODO update grades in enrollment records with grades received from gradebook service
 		//Iterate over the grades and update enrollment records
 		for (FinalGradeDTO gradeDTO : grades) {
 			
