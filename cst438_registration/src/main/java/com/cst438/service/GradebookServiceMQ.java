@@ -6,6 +6,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +28,18 @@ public class GradebookServiceMQ implements GradebookService {
 	
 	Queue gradebookQueue = new Queue("gradebook-queue", true);
 
+    @Bean
+    Queue createQueue() {
+		return new Queue("registration-queue", true);
+	}
+
 	// send message to grade book service about new student enrollment in course
 	@Override
 	public void enrollStudent(String student_email, String student_name, int course_id) {
-		System.out.println("Start Message "+ student_email +" " + course_id); 
+		System.out.println("Start Message "+ student_name + " " + student_email +" " + course_id); 
 		
 		// create EnrollmentDTO, convert to JSON string and send to gradebookQueue
-		EnrollmentDTO enrollmentDTO = new EnrollmentDTO(course_id, student_email, student_name, course_id);
+		EnrollmentDTO enrollmentDTO = new EnrollmentDTO(0, student_email, student_name, course_id);
 		
 		//Convert the EnrollmentDTO to a JSON string
 		String enrollmentJson = asJsonString(enrollmentDTO);
