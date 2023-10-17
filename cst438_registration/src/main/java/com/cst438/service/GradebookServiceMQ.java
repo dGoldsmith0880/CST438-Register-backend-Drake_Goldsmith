@@ -6,6 +6,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +28,26 @@ public class GradebookServiceMQ implements GradebookService {
 	
 	Queue gradebookQueue = new Queue("gradebook-queue", true);
 
+    @Bean
+    Queue createQueue() {
+		return new Queue("registration-queue", true);
+	}
+
 	// send message to grade book service about new student enrollment in course
 	@Override
 	public void enrollStudent(String student_email, String student_name, int course_id) {
-		System.out.println("Start Message "+ student_email +" " + course_id); 
+		System.out.println("Start Message "+ student_name + " " + student_email +" " + course_id); 
+		
 		// create EnrollmentDTO, convert to JSON string and send to gradebookQueue
-		// TODO
+		EnrollmentDTO enrollmentDTO = new EnrollmentDTO(0, student_email, student_name, course_id);
+		
+		//Convert the EnrollmentDTO to a JSON string
+		String enrollmentJson = asJsonString(enrollmentDTO);
+		
+		// Send the JSON string to the gradebookQueue
+		rabbitTemplate.convertAndSend(gradebookQueue.getName(), enrollmentJson);
+		
+	    System.out.println("Enrollment message sent: " + enrollmentJson);
 	}
 	
 	@RabbitListener(queues = "registration-queue")
@@ -44,10 +59,28 @@ public class GradebookServiceMQ implements GradebookService {
 		 * entity and update the grade.
 		 */
 		
-		// deserialize the string message to FinalGradeDTO[] 
-		
-		// TODO
+		// Deserialize the string message to FinalGradeDTO[] 
+		FinalGradeDTO[] grades = fromJsonString(message, FinalGradeDTO[].class);
 
+		//Iterate over the grades and update enrollment records
+		for (FinalGradeDTO gradeDTO : grades) {
+			
+			// Access student email from the FinalGradeDTO
+			String studentEmail = gradeDTO.studentEmail();
+			
+			//Access course id from FinalGradeDTO
+			int courseID = gradeDTO.courseId();
+			
+			//Find the student's enrollment entity for the course
+			Enrollment enrollment = enrollmentRepository.findByEmailAndCourseId(studentEmail, courseID);
+			
+	        if (enrollment != null) {
+	            // Update the course grade in the enrollment record
+	            enrollment.setCourseGrade(gradeDTO.grade());
+	            // Save the updated enrollment record to the database
+	            enrollmentRepository.save(enrollment);
+	        }
+		}
 	}
 	
 	private static String asJsonString(final Object obj) {
