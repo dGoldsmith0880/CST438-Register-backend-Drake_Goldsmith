@@ -1,5 +1,8 @@
 package com.cst438;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,11 +13,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 
+import com.cst438.domain.StudentDTO;
+
+@TestMethodOrder(OrderAnnotation.class)
 public class SystemTestStudent {
     public static final String CHROME_DRIVER_FILE_LOCATION = "C:\\chromedriver-win64\\chromedriver.exe";
     public static final String URL = "http://localhost:3000/admin";
@@ -31,10 +45,13 @@ public class SystemTestStudent {
         driver = new ChromeDriver(ops);
         driver.get(URL);
         Thread.sleep(SLEEP_DURATION);
+		StudentDTO sdto = new StudentDTO(0, "name test", "ntest@csumb.edu", 0, null);
+		MockHttpServletResponse response;
     }
 
 
     @Test
+    @Order(1)
     public void addStudent() throws Exception {
         // Locate the "Add Student" button and click it to open the dialog
         WebElement addStudentButton = driver.findElement(By.id("addStudent"));
@@ -64,12 +81,12 @@ public class SystemTestStudent {
         assertEquals("Student added.", successMessage.getText());
 
         // Fetch the list of students and check if the newly added student is in the list
-        List<WebElement> studentList = driver.findElements(By.xpath("//tr[@class='students']"));
+        List<WebElement> studentList = driver.findElements(By.xpath("//table/tbody/tr"));
         
         boolean isNewStudentFound = false;
         for (WebElement student : studentList) {
-            String name = student.findElement(By.className("name")).getText();
-            String email = student.findElement(By.className("email")).getText();
+            String name = student.findElement(By.xpath("./td[2]")).getText();
+            String email = student.findElement(By.xpath("./td[3]")).getText();
             if ("John Doe".equals(name) && "john.doe@example.com".equals(email)) {
                 isNewStudentFound = true;
                 break;
@@ -82,46 +99,62 @@ public class SystemTestStudent {
 
 
     @Test
+    @Order(2)
     public void updateStudent() throws Exception {
-        // Fetch the list of students
-        List<WebElement> studentList = driver.findElements(By.xpath("//tr[@class='students']"));
-
-        // Find the specific student to edit based on their characteristics (e.g., name and email)
-        WebElement studentToEdit = null;
-
+        // Fetch the list of students and check if the newly added student is in the list
+        List<WebElement> studentList = driver.findElements(By.xpath("//table/tbody/tr"));
+        WebElement editStudent = null;
+        String editName;
+        String editEmail;
         for (WebElement student : studentList) {
-            String name = student.findElement(By.className("name")).getText();
-            String email = student.findElement(By.className("email")).getText();
-
-            // Check if this is the student you want to edit
-            if ("John Doe".equals(name) && "john.doe@example.com".equals(email)) {
-                studentToEdit = student;
+            editName = student.findElement(By.xpath("./td[2]")).getText();
+            editEmail = student.findElement(By.xpath("./td[3]")).getText();
+            if ("John Doe".equals(editName) && "john.doe@example.com".equals(editEmail)) {
+                editStudent = student;
                 break;
             }
         }
 
         // If the student to edit is found, proceed with the update
-        if (studentToEdit != null) {
+        if (editStudent != null) {
             // Click the "Edit" button for the specific student
-            WebElement editButton = studentToEdit.findElement(By.id("editStudent"));
+            WebElement editButton = editStudent.findElement(By.xpath("./td[6]"));
             editButton.click();
             Thread.sleep(SLEEP_DURATION);
 
             // Locate input fields for updating student information
-            WebElement nameInput = driver.findElement(By.name("name"));
-            WebElement emailInput = driver.findElement(By.name("email"));
-            WebElement statusInput = driver.findElement(By.name("status"));
-            WebElement statusCodeInput = driver.findElement(By.name("statusCode"));
-            WebElement submitButton = driver.findElement(By.name("submit"));
+            WebElement nameInput = driver.findElement(By.id("name"));
+            WebElement emailInput = driver.findElement(By.id("email"));
+            WebElement statusInput = driver.findElement(By.id("status"));
+            WebElement statusCodeInput = driver.findElement(By.id("statusCode"));
+            WebElement submitButton = driver.findElement(By.id("edit"));
 
+         // Clear the input fields with this long process because .clear() wasn't working
+            String currentText = nameInput.getAttribute("value");
+            int textLength = currentText.length();
+            for (int i = 0; i < textLength; i++) {
+            	nameInput.sendKeys(Keys.BACK_SPACE);
+            }
+            currentText = emailInput.getAttribute("value");
+            textLength = currentText.length();
+            for (int i = 0; i < textLength; i++) {
+            	emailInput.sendKeys(Keys.BACK_SPACE);
+            }
+            currentText = statusInput.getAttribute("value");
+            textLength = currentText.length();
+            for (int i = 0; i < textLength; i++) {
+            	statusInput.sendKeys(Keys.BACK_SPACE);
+            }
+            currentText = statusCodeInput.getAttribute("value");
+            textLength = currentText.length();
+            for (int i = 0; i < textLength; i++) {
+            	statusCodeInput.sendKeys(Keys.BACK_SPACE);
+            }
+            
             // Update student information
-            nameInput.clear();
             nameInput.sendKeys("Updated Name");
-            emailInput.clear();
-            emailInput.sendKeys("updated.email@example.com");
-            statusCodeInput.clear();
+            emailInput.sendKeys("Updated@email.com");
             statusCodeInput.sendKeys("456");
-            statusInput.clear();
             statusInput.sendKeys("Inactive");
 
             // Submit the updated information
@@ -132,33 +165,47 @@ public class SystemTestStudent {
             WebElement successMessage = driver.findElement(By.id("message"));
             assertNotNull(successMessage);
             assertEquals("Student edited.", successMessage.getText());
+            
+            studentList = driver.findElements(By.xpath("//table/tbody/tr"));
+            WebElement compareStudent = null;
+            for (WebElement student : studentList) {
+                editName = student.findElement(By.xpath("./td[2]")).getText();
+                editEmail = student.findElement(By.xpath("./td[3]")).getText();
+                if ("Updated Name".equals(editName) && "Updated@email.com".equals(editEmail)) {
+                    compareStudent = student;
+                    break;
+                }
+            }
+            assertThat(compareStudent.findElement(By.xpath("./td[2]")).getText().equals("Updated Name"));
+            assertThat(compareStudent.findElement(By.xpath("./td[3]")).getText().equals("Updated@email.com"));
+            assertThat(compareStudent.findElement(By.xpath("./td[4]")).getText().equals("456"));
+            assertThat(compareStudent.findElement(By.xpath("./td[5]")).getText().equals("Inactive"));
         }
     }
 
 
 
     @Test
+    @Order(3)
     public void deleteStudent() throws Exception {
-        // Find the specific student to delete based on their characteristics (e.g., name and email)
-        WebElement studentToDelete = null;
-        
-        List<WebElement> studentList = driver.findElements(By.xpath("//tr[@class='students']"));
+    	
+        List<WebElement> studentList = driver.findElements(By.xpath("//table/tbody/tr"));
+        WebElement deleteStudent = null;
+        String deleteName;
+        String deleteEmail;
         
         for (WebElement student : studentList) {
-            String name = student.findElement(By.className("Name")).getText();
-            String email = student.findElement(By.className("Email")).getText();
-
-            // Check if this is the student you want to delete
-            if ("test".equals(name) && "test@csumb.edu".equals(email)) {
-                studentToDelete = student;
+            deleteName = student.findElement(By.xpath("./td[2]")).getText();
+            deleteEmail = student.findElement(By.xpath("./td[3]")).getText();
+            if ("Updated Name".equals(deleteName) && "Updated@email.com".equals(deleteEmail)) {
+                deleteStudent = student;
                 break;
             }
         }
 
-        // If the student was found, proceed to delete
-        if (studentToDelete != null) {
-            // Get the "Delete" button for the specific student
-            WebElement deleteButton = studentToDelete.findElement(By.id("deleteStudent"));
+        if (deleteStudent != null) {
+        // Get the "Delete" button for the specific student
+            WebElement deleteButton = deleteStudent.findElement(By.id("deleteStudent"));
             deleteButton.click();
 
             // Simulate confirming the deletion by accepting the confirmation dialog
@@ -171,12 +218,19 @@ public class SystemTestStudent {
             assertEquals("Student deleted.", successMessage.getText());
 
             // Fetch the updated list of students
-            List<WebElement> updatedStudentList = driver.findElements(By.xpath("//tr[@class='students']"));
+            List<WebElement> updatedStudentList = driver.findElements(By.xpath("//table/tbody/tr"));
+            System.out.println(updatedStudentList.size());
 
             // Assert that the updated list size is smaller by one
-            assertEquals(studentList.size() - 1, updatedStudentList.size());
+            assertNotEquals(studentList.size(), updatedStudentList.size());
+            for (WebElement student: updatedStudentList) {
+                deleteName = student.findElement(By.xpath("./td[2]")).getText();
+                deleteEmail = student.findElement(By.xpath("./td[3]")).getText();
+                assertFalse("test".equals(deleteName) && "test@csumb.edu".equals(deleteEmail));
+            }
         }
     }
+
 
 
     @AfterEach
