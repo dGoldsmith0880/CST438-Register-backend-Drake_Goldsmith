@@ -18,15 +18,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.MockMvc;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
-
-import com.cst438.domain.StudentDTO;
 
 @TestMethodOrder(OrderAnnotation.class)
 public class SystemTestStudent {
@@ -37,18 +31,15 @@ public class SystemTestStudent {
     WebDriver driver;
     
     @BeforeEach
-    public void setup() throws Exception{
-        System.setProperty(
-            "webdriver.chrome.driver", CHROME_DRIVER_FILE_LOCATION);
+    public void setup() throws Exception {
+        // Set up the Chrome WebDriver
+        System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_FILE_LOCATION);
         ChromeOptions ops = new ChromeOptions();
         ops.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(ops);
         driver.get(URL);
         Thread.sleep(SLEEP_DURATION);
-		StudentDTO sdto = new StudentDTO(0, "name test", "ntest@csumb.edu", 0, null);
-		MockHttpServletResponse response;
     }
-
 
     @Test
     @Order(1)
@@ -96,16 +87,15 @@ public class SystemTestStudent {
         assertTrue(isNewStudentFound);
     }
 
-
-
     @Test
     @Order(2)
     public void updateStudent() throws Exception {
-        // Fetch the list of students and check if the newly added student is in the list
+        // Fetch the list of students and find a specific student to edit
         List<WebElement> studentList = driver.findElements(By.xpath("//table/tbody/tr"));
         WebElement editStudent = null;
         String editName;
         String editEmail;
+        
         for (WebElement student : studentList) {
             editName = student.findElement(By.xpath("./td[2]")).getText();
             editEmail = student.findElement(By.xpath("./td[3]")).getText();
@@ -129,26 +119,26 @@ public class SystemTestStudent {
             WebElement statusCodeInput = driver.findElement(By.id("statusCode"));
             WebElement submitButton = driver.findElement(By.id("edit"));
 
-         // Clear the input fields with this long process because .clear() wasn't working
+            // Clear the input fields with a process using Keys.BACK_SPACE because .clear() wasn't working
             String currentText = nameInput.getAttribute("value");
             int textLength = currentText.length();
             for (int i = 0; i < textLength; i++) {
-            	nameInput.sendKeys(Keys.BACK_SPACE);
+                nameInput.sendKeys(Keys.BACK_SPACE);
             }
             currentText = emailInput.getAttribute("value");
             textLength = currentText.length();
             for (int i = 0; i < textLength; i++) {
-            	emailInput.sendKeys(Keys.BACK_SPACE);
+                emailInput.sendKeys(Keys.BACK_SPACE);
             }
             currentText = statusInput.getAttribute("value");
             textLength = currentText.length();
             for (int i = 0; i < textLength; i++) {
-            	statusInput.sendKeys(Keys.BACK_SPACE);
+                statusInput.sendKeys(Keys.BACK_SPACE);
             }
             currentText = statusCodeInput.getAttribute("value");
             textLength = currentText.length();
             for (int i = 0; i < textLength; i++) {
-            	statusCodeInput.sendKeys(Keys.BACK_SPACE);
+                statusCodeInput.sendKeys(Keys.BACK_SPACE);
             }
             
             // Update student information
@@ -166,6 +156,7 @@ public class SystemTestStudent {
             assertNotNull(successMessage);
             assertEquals("Student edited.", successMessage.getText());
             
+            // Find newly updated student in student list
             studentList = driver.findElements(By.xpath("//table/tbody/tr"));
             WebElement compareStudent = null;
             for (WebElement student : studentList) {
@@ -176,6 +167,7 @@ public class SystemTestStudent {
                     break;
                 }
             }
+            // Check if the updated student got it's attributes updated
             assertThat(compareStudent.findElement(By.xpath("./td[2]")).getText().equals("Updated Name"));
             assertThat(compareStudent.findElement(By.xpath("./td[3]")).getText().equals("Updated@email.com"));
             assertThat(compareStudent.findElement(By.xpath("./td[4]")).getText().equals("456"));
@@ -183,17 +175,14 @@ public class SystemTestStudent {
         }
     }
 
-
-
     @Test
     @Order(3)
     public void deleteStudent() throws Exception {
-    	
         List<WebElement> studentList = driver.findElements(By.xpath("//table/tbody/tr"));
         WebElement deleteStudent = null;
         String deleteName;
         String deleteEmail;
-        
+        // find the specific student to delete in the list
         for (WebElement student : studentList) {
             deleteName = student.findElement(By.xpath("./td[2]")).getText();
             deleteEmail = student.findElement(By.xpath("./td[3]")).getText();
@@ -204,7 +193,7 @@ public class SystemTestStudent {
         }
 
         if (deleteStudent != null) {
-        // Get the "Delete" button for the specific student
+            // Get the "Delete" button for the specific student
             WebElement deleteButton = deleteStudent.findElement(By.id("deleteStudent"));
             deleteButton.click();
 
@@ -219,10 +208,10 @@ public class SystemTestStudent {
 
             // Fetch the updated list of students
             List<WebElement> updatedStudentList = driver.findElements(By.xpath("//table/tbody/tr"));
-            System.out.println(updatedStudentList.size());
 
             // Assert that the updated list size is smaller by one
             assertNotEquals(studentList.size(), updatedStudentList.size());
+            // Check if student is still in the list
             for (WebElement student: updatedStudentList) {
                 deleteName = student.findElement(By.xpath("./td[2]")).getText();
                 deleteEmail = student.findElement(By.xpath("./td[3]")).getText();
@@ -231,10 +220,9 @@ public class SystemTestStudent {
         }
     }
 
-
-
     @AfterEach
     public void cleanup() {
+        // Close the WebDriver after each test
         if (driver != null) {
             driver.close();
             driver.quit();
