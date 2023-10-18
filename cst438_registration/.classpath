@@ -29,7 +29,5 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry kind="lib" path="C:/Users/golds/Downloads/selenium-java-4.14.1.zip"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
-

@@ -22,7 +22,6 @@ import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
 
-@TestMethodOrder(OrderAnnotation.class)
 public class SystemTestStudent {
     public static final String CHROME_DRIVER_FILE_LOCATION = "C:\\chromedriver-win64\\chromedriver.exe";
     public static final String URL = "http://localhost:3000/admin";
@@ -42,7 +41,6 @@ public class SystemTestStudent {
     }
 
     @Test
-    @Order(1)
     public void addStudent() throws Exception {
         // Locate the "Add Student" button and click it to open the dialog
         WebElement addStudentButton = driver.findElement(By.id("addStudent"));
@@ -88,7 +86,6 @@ public class SystemTestStudent {
     }
 
     @Test
-    @Order(2)
     public void updateStudent() throws Exception {
         // Fetch the list of students and find a specific student to edit
         List<WebElement> studentList = driver.findElements(By.xpath("//table/tbody/tr"));
@@ -99,7 +96,7 @@ public class SystemTestStudent {
         for (WebElement student : studentList) {
             editName = student.findElement(By.xpath("./td[2]")).getText();
             editEmail = student.findElement(By.xpath("./td[3]")).getText();
-            if ("John Doe".equals(editName) && "john.doe@example.com".equals(editEmail)) {
+            if ("tom".equals(editName) && "trebold@csumb.edu".equals(editEmail)) {
                 editStudent = student;
                 break;
             }
@@ -176,7 +173,6 @@ public class SystemTestStudent {
     }
 
     @Test
-    @Order(3)
     public void deleteStudent() throws Exception {
         List<WebElement> studentList = driver.findElements(By.xpath("//table/tbody/tr"));
         WebElement deleteStudent = null;
@@ -186,7 +182,7 @@ public class SystemTestStudent {
         for (WebElement student : studentList) {
             deleteName = student.findElement(By.xpath("./td[2]")).getText();
             deleteEmail = student.findElement(By.xpath("./td[3]")).getText();
-            if ("Updated Name".equals(deleteName) && "Updated@email.com".equals(deleteEmail)) {
+            if ("test".equals(deleteName) && "test@csumb.edu".equals(deleteEmail)) {
                 deleteStudent = student;
                 break;
             }
